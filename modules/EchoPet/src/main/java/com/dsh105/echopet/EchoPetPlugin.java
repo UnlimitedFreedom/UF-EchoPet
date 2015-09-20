@@ -60,6 +60,8 @@ import java.sql.Statement;
 public class EchoPetPlugin extends JavaPlugin implements IEchoPetPlugin {
 
     private static boolean isUsingNetty;
+    
+    public static EchoPetPlugin plugin;
 
     private static ISpawnUtil SPAWN_UTIL;
     private static PetManager MANAGER;
@@ -94,6 +96,11 @@ public class EchoPetPlugin extends JavaPlugin implements IEchoPetPlugin {
     public long size = 0;
     public boolean updateChecked = false;
 
+    @Override
+    public void onLoad() {
+        EchoPetPlugin.plugin = this;
+    }
+    
     @Override
     public void onEnable() {
         EchoPet.setPlugin(this);
@@ -152,10 +159,10 @@ public class EchoPetPlugin extends JavaPlugin implements IEchoPetPlugin {
         manager.registerEvents(new PetOwnerListener(), this);
         //manager.registerEvents(new ChunkListener(), this);
 
-        this.vanishProvider = new VanishProvider(this);
-        this.worldGuardProvider = new WorldGuardProvider(this);
+        plugin.vanishProvider = new VanishProvider(this);
+        plugin.worldGuardProvider = new WorldGuardProvider(this);
 
-        this.setupSpigotProtocolHackCompatibilityIfNeeded();
+        plugin.setupSpigotProtocolHackCompatibilityIfNeeded();
 
         try {
             Metrics metrics = new Metrics(this);
@@ -163,8 +170,6 @@ public class EchoPetPlugin extends JavaPlugin implements IEchoPetPlugin {
         } catch (IOException e) {
             // Failed to submit the stats :(
         }
-
-        this.checkUpdates();
     }
 
     @Override
@@ -308,48 +313,12 @@ public class EchoPetPlugin extends JavaPlugin implements IEchoPetPlugin {
             return;
         }
         EchoPet.LOG.log(ChatColor.GREEN + "Spigot 1.7.x-1.8.x ProtocolHack and ProtocolLib detected! Adding 1.8 compatibility!");
-        this.spigotProtocolHackPacketListener = new SpigotProtocolHackPacketListener(this);
-    }
-
-    protected void checkUpdates() {
-        if (this.getMainConfig().getBoolean("checkForUpdates", true)) {
-            final File file = this.getFile();
-            final Updater.UpdateType updateType = this.getMainConfig().getBoolean("autoUpdate", false) ? Updater.UpdateType.DEFAULT : Updater.UpdateType.NO_DOWNLOAD;
-            getServer().getScheduler().runTaskAsynchronously(this, new Runnable() {
-                @Override
-                public void run() {
-                    Updater updater = new Updater(EchoPet.getPlugin(), 53655, file, updateType, false);
-                    update = updater.getResult() == Updater.UpdateResult.UPDATE_AVAILABLE;
-                    if (update) {
-                        name = updater.getLatestName();
-                        EchoPet.LOG.log(ChatColor.GOLD + "An update is available: " + name);
-                        EchoPet.LOG.log(ChatColor.GOLD + "Type /ecupdate to update.");
-                        if (!updateChecked) {
-                            updateChecked = true;
-                        }
-                    }
-                }
-            });
-        }
+        plugin.spigotProtocolHackPacketListener = new SpigotProtocolHackPacketListener(this);
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
-        if (commandLabel.equalsIgnoreCase("ecupdate")) {
-            if (sender.hasPermission("echopet.update")) {
-                if (updateChecked) {
-                    @SuppressWarnings("unused")
-                    Updater updater = new Updater(this, 53655, this.getFile(), Updater.UpdateType.NO_VERSION_CHECK, true);
-                    return true;
-                } else {
-                    sender.sendMessage(this.prefix + ChatColor.GOLD + " An update is not available.");
-                    return true;
-                }
-            } else {
-                Lang.sendTo(sender, Lang.NO_PERMISSION.toString().replace("%perm%", "echopet.update"));
-                return true;
-            }
-        } else if (commandLabel.equalsIgnoreCase("echopet")) {
+        if (commandLabel.equalsIgnoreCase("echopet")) {
             if (sender.hasPermission("echopet.petadmin")) {
                 PluginDescriptionFile pdFile = this.getDescription();
                 sender.sendMessage(ChatColor.RED + "-------- EchoPet --------");
@@ -358,8 +327,8 @@ public class EchoPetPlugin extends JavaPlugin implements IEchoPetPlugin {
                 sender.sendMessage(ChatColor.GOLD + "Website: " + ChatColor.YELLOW + pdFile.getWebsite());
                 sender.sendMessage(ChatColor.GOLD + "Commands are registered at runtime to provide you with more dynamic control over the command labels.");
                 sender.sendMessage(ChatColor.GOLD + "" + ChatColor.UNDERLINE + "Command Registration:");
-                sender.sendMessage(ChatColor.GOLD + "Main: " + this.OPTIONS.getCommandString());
-                sender.sendMessage(ChatColor.GOLD + "Admin: " + this.OPTIONS.getCommandString() + "admin");
+                sender.sendMessage(ChatColor.GOLD + "Main: " + EchoPetPlugin.OPTIONS.getCommandString());
+                sender.sendMessage(ChatColor.GOLD + "Admin: " + EchoPetPlugin.OPTIONS.getCommandString() + "admin");
             } else {
                 Lang.sendTo(sender, Lang.NO_PERMISSION.toString().replace("%perm%", "echopet.petadmin"));
                 return true;
