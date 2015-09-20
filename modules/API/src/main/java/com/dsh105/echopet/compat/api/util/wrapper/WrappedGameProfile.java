@@ -25,6 +25,7 @@ import java.util.UUID;
 
 public class WrappedGameProfile extends AbstractWrapper {
 
+    @SuppressWarnings("null")
     private WrappedGameProfile(Object ident, String name) {
         Class<?> gameProfileClass = null;
         try {
@@ -33,7 +34,6 @@ public class WrappedGameProfile extends AbstractWrapper {
             try {
                 gameProfileClass = Class.forName("com.mojang.authlib.GameProfile");
             } catch (ClassNotFoundException e1) {
-                e1.printStackTrace();
             }
         }
 
@@ -43,14 +43,7 @@ public class WrappedGameProfile extends AbstractWrapper {
             } else if (ident instanceof String) {
                 super.setHandle(gameProfileClass.getConstructor(String.class, String.class).newInstance(ident, name));
             }
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
         }
     }
 
@@ -60,10 +53,6 @@ public class WrappedGameProfile extends AbstractWrapper {
 
     public WrappedGameProfile(String ident, String name) {
         this((Object) ident, name);
-    }
-
-    public static WrappedGameProfile getNewProfile(WrappedGameProfile old, String newName) {
-        return new WrappedGameProfile(old.getId(), newName);
     }
 
     public UUID getUniqueId() {

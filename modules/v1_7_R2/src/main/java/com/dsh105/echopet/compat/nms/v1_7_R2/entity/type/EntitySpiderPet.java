@@ -20,7 +20,6 @@ package com.dsh105.echopet.compat.nms.v1_7_R2.entity.type;
 import com.dsh105.echopet.compat.api.entity.*;
 import com.dsh105.echopet.compat.api.entity.type.nms.IEntitySpiderPet;
 import com.dsh105.echopet.compat.nms.v1_7_R2.entity.EntityPet;
-import net.minecraft.server.v1_7_R2.World;
 
 @EntitySize(width = 1.4F, height = 0.9F)
 @EntityPetType(petType = PetType.SPIDER)
